@@ -3,18 +3,27 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Shop : MonoBehaviour
+public class Shop : Singleton<Shop>
 {
+    [SerializeField] private UIShop _uiShop;
     private Gold _playerGold;
-    private int _goldIncrease = 1;
-    private int _goldIncreaseCost = 1;
-    private int _goldMultiplier = 2;
-    private int _goldMultiCost = 10;
-    [SerializeField] private Item[] _items;
+    private BigIntegerUnit _goldIncrease;
+    private BigIntegerUnit _goldIncreaseCost;
+    private BigIntegerUnit _goldMultiplier;
+    private BigIntegerUnit _goldMultiCost;
+    
+    public Action<string,string> OnGoldIncrease;
+    public Action<string,string> OnGoldMultiplier;
 
+    
     private void Start()
     {
         _playerGold = GameManager.Instance.User.Gold;
+        _goldIncrease = new BigIntegerUnit(1);
+        _goldIncreaseCost = new BigIntegerUnit(1);
+        _goldMultiplier = new BigIntegerUnit(10);
+        _goldMultiCost = new BigIntegerUnit(1);
+
     }
     public void BuyGoldIncrease()
     {
@@ -22,8 +31,9 @@ public class Shop : MonoBehaviour
         {
             _playerGold.SpendGold(_goldIncreaseCost);
             _playerGold.UpgradeGoldPerClick(_goldIncrease);
-            _goldIncrease++;
+            _goldIncrease*=5;
             _goldIncreaseCost *= 5;
+            OnGoldIncrease?.Invoke(_goldIncrease.ToDexString(),_goldIncreaseCost.ToDexString());
         }
         else
         {
@@ -38,6 +48,7 @@ public class Shop : MonoBehaviour
             _playerGold.SpendGold(_goldMultiCost);
             _playerGold.UpgradeGoldBonusMultiplier(_goldMultiplier);
             _goldMultiCost *= 100;
+            OnGoldMultiplier?.Invoke(_goldMultiplier.ToDexString(),_goldMultiCost.ToDexString());
         }
         else
         {
@@ -45,16 +56,12 @@ public class Shop : MonoBehaviour
         }
     }
 
-    public void OnGUI()
+    public void OpenShop()
     {
-        if (GUI.Button(new Rect(20, 70, 300, 200), "GoldIncrease"))
-        {
-            BuyGoldIncrease();
-        }
-
-        if (GUI.Button(new Rect(20, 270, 300, 200), "GoldMultiplier"))
-        {
-            BuyGoldMultiplier();
-        }
+        _uiShop.gameObject.SetActive(true);
+        _uiShop.Init(BuyGoldIncrease,BuyGoldMultiplier);
+        OnGoldIncrease?.Invoke(_goldIncrease.ToDexString(),_goldIncreaseCost.ToDexString());
+        OnGoldMultiplier?.Invoke(_goldMultiplier.ToDexString(),_goldMultiCost.ToDexString());
     }
+    
 }
