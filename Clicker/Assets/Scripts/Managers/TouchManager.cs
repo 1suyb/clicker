@@ -17,7 +17,7 @@ public class TouchManager : Singleton<TouchManager>
     {
         _autoClick = new WaitForSeconds(autoClickInterval);
         _gold = GameManager.Instance.User.Gold;
-        //StartCoroutine(AutoTouch());
+        StartCoroutine(AutoTouch());
     }
 
     private void Update()
